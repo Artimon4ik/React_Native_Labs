@@ -1,4 +1,5 @@
-import { Image, StyleSheet, Text, View } from 'react-native';
+import { useRouter } from 'expo-router';
+import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 
 export type Recipe = {
   id: number;
@@ -14,8 +15,18 @@ type RecipeCardProps = {
 };
 
 export function RecipeCard({ recipe }: RecipeCardProps) {
+  const router = useRouter();
+
   return (
-    <View style={styles.card}>
+    <Pressable
+      style={styles.card}
+      onPress={() =>
+        router.push({
+          pathname: '/recipes/[id]', 
+          params: { id: String(recipe.id) },
+  })
+}
+    >
       <Image source={{ uri: recipe.image }} style={styles.image} />
 
       <View style={styles.info}>
@@ -24,7 +35,7 @@ export function RecipeCard({ recipe }: RecipeCardProps) {
         <Text>Сложность: {recipe.difficulty}</Text>
         <Text>Рейтинг: {recipe.rating}</Text>
       </View>
-    </View>
+    </Pressable>
   );
 }
 
