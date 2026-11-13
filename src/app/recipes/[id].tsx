@@ -1,5 +1,4 @@
 import { useLocalSearchParams } from 'expo-router';
-import { useEffect, useState } from 'react';
 import {
     ActivityIndicator,
     Image,
@@ -9,53 +8,12 @@ import {
     View,
 } from 'react-native';
 
-import type { Recipe } from '../../components/recipe-card';
+import { useRecipe } from '../../hooks/useRecipe';
 
 export default function RecipeDetails() {
   const { id } = useLocalSearchParams<{ id: string }>();
 
-  const [recipe, setRecipe] = useState<Recipe | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-
-  useEffect(() => {
-    const controller = new AbortController();
-
-    async function loadRecipe() {
-      setLoading(true);
-      setError('');
-      setRecipe(null);
-
-      try {
-        const response = await fetch(
-          `https://dummyjson.com/recipes/${id}`,
-          { signal: controller.signal }
-        );
-
-        if (!response.ok) {
-          throw new Error('Рецепт не найден');
-        }
-
-        const data: Recipe = await response.json();
-
-        if (!controller.signal.aborted) {
-          setRecipe(data);
-        }
-      } catch (err) {
-        if (!controller.signal.aborted) {
-          setError('Не удалось загрузить рецепт');
-        }
-      } finally {
-        if (!controller.signal.aborted) {
-          setLoading(false);
-        }
-      }
-    }
-
-    loadRecipe();
-
-    return () => controller.abort();
-  }, [id]);
+  const { recipe, loading, error } = useRecipe(id);
 
   if (loading) {
     return (

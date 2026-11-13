@@ -1,5 +1,5 @@
 import { useRouter } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import {
     ActivityIndicator,
     FlatList,
@@ -11,80 +11,24 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import type { Recipe } from '../../components/recipe-card';
 import { RecipeCard } from '../../components/recipe-card';
-
-type RecipesResponse = {
-  recipes: Recipe[];
-  total: number;
-  skip: number;
-  limit: number;
-};
-
-const PAGE_SIZE = 10;
+import { useRecipes } from '../../hooks/useRecipes';
 
 export default function HomeScreen() {
   const router = useRouter();
 
-  const [recipes, setRecipes] = useState<Recipe[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
   const [page, setPage] = useState(1);
-  const [total, setTotal] = useState(0);
   const [search, setSearch] = useState('');
 
-  const totalPages = Math.ceil(total / PAGE_SIZE);
+  const { recipes, total, loading, error, pageSize } = useRecipes(page);
 
-  
+  const totalPages = Math.ceil(total / pageSize);
+
   const filteredRecipes = recipes.filter((recipe) =>
     recipe.name
       .toLowerCase()
       .includes(search.toLowerCase().trim())
   );
-
-  
-  useEffect(() => {
-    const controller = new AbortController();
-
-    async function loadRecipes() {
-      setLoading(true);
-      setError(null);
-
-      try {
-        const skip = (page - 1) * PAGE_SIZE;
-
-        const response = await fetch(
-          `https://dummyjson.com/recipes?limit=${PAGE_SIZE}&skip=${skip}`,
-          { signal: controller.signal }
-        );
-
-        if (!response.ok) {
-          throw new Error(`HTTP ${response.status}`);
-        }
-
-        const data: RecipesResponse = await response.json();
-
-        if (!controller.signal.aborted) {
-          setRecipes(data.recipes);
-          setTotal(data.total);
-        }
-      } catch (err) {
-        if (!controller.signal.aborted) {
-          setError('Не удалось получить рецепты');
-          setRecipes([]);
-        }
-      } finally {
-        if (!controller.signal.aborted) {
-          setLoading(false);
-        }
-      }
-    }
-
-    loadRecipes();
-
-    return () => controller.abort();
-  }, [page]);
 
   return (
     <SafeAreaView style={styles.container}>
