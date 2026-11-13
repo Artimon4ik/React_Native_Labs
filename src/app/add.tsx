@@ -2,18 +2,16 @@ import { useRouter } from 'expo-router';
 import { StyleSheet, View } from 'react-native';
 
 import { RecipeForm } from '../components/recipe-form';
-import { useRecipes } from '../context/RecipeContext';
 
 export default function AddRecipeScreen() {
   const router = useRouter();
-  const { addRecipe } = useRecipes();
 
   function handleAddRecipe(
     name: string,
     cuisine: string,
     difficulty: string
   ) {
-    addRecipe(name, cuisine, difficulty);
+    // Пока не сохраняем рецепт между экранами
     router.back();
   }
 

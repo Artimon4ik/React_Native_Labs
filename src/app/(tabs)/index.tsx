@@ -1,4 +1,3 @@
-
 import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import {
@@ -14,7 +13,6 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import type { Recipe } from '../../components/recipe-card';
 import { RecipeCard } from '../../components/recipe-card';
-import { useRecipes } from '../../context/RecipeContext';
 
 type RecipesResponse = {
   recipes: Recipe[];
@@ -29,8 +27,6 @@ export default function HomeScreen() {
   const router = useRouter();
 
   const [recipes, setRecipes] = useState<Recipe[]>([]);
-  const { localRecipes } = useRecipes();
-
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -40,27 +36,14 @@ export default function HomeScreen() {
 
   const totalPages = Math.ceil(total / PAGE_SIZE);
 
-  // Объединяем локальные рецепты и рецепты из API
-  const allRecipes = [...localRecipes, ...recipes];
-
-  // Фильтрация по поисковой строке
-  const filteredRecipes = allRecipes.filter((recipe) =>
+  
+  const filteredRecipes = recipes.filter((recipe) =>
     recipe.name
       .toLowerCase()
       .includes(search.toLowerCase().trim())
   );
 
-  // Данные, которые передаём в FlatList
-  const visibleRecipes =
-    loading || error
-      ? localRecipes.filter((recipe) =>
-          recipe.name
-            .toLowerCase()
-            .includes(search.toLowerCase().trim())
-        )
-      : filteredRecipes;
-
-  // Загрузка рецептов из API
+  
   useEffect(() => {
     const controller = new AbortController();
 
@@ -106,7 +89,7 @@ export default function HomeScreen() {
   return (
     <SafeAreaView style={styles.container}>
       <FlatList
-        data={visibleRecipes}
+        data={loading || error ? [] : filteredRecipes}
         keyExtractor={(item) => item.id.toString()}
         renderItem={({ item }) => (
           <RecipeCard recipe={item} />

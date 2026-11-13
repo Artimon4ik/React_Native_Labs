@@ -1,4 +1,3 @@
-
 import { useLocalSearchParams } from 'expo-router';
 import { useEffect, useState } from 'react';
 import {
@@ -11,16 +10,9 @@ import {
 } from 'react-native';
 
 import type { Recipe } from '../../components/recipe-card';
-import { useRecipes } from '../../context/RecipeContext';
 
 export default function RecipeDetails() {
   const { id } = useLocalSearchParams<{ id: string }>();
-
-  const { localRecipes } = useRecipes();
-
-  const localRecipe = localRecipes.find(
-    (item) => item.id === Number(id)
-  );
 
   const [recipe, setRecipe] = useState<Recipe | null>(null);
   const [loading, setLoading] = useState(true);
@@ -34,14 +26,6 @@ export default function RecipeDetails() {
       setError('');
       setRecipe(null);
 
-      // Сначала ищем рецепт в локальном хранилище
-      if (localRecipe) {
-        setRecipe(localRecipe);
-        setLoading(false);
-        return;
-      }
-
-      // Если локального рецепта нет, обращаемся к API
       try {
         const response = await fetch(
           `https://dummyjson.com/recipes/${id}`,
@@ -71,10 +55,15 @@ export default function RecipeDetails() {
     loadRecipe();
 
     return () => controller.abort();
-  }, [id, localRecipe]);
+  }, [id]);
 
   if (loading) {
-    return <ActivityIndicator size="large" style={styles.center} />;
+    return (
+      <ActivityIndicator
+        size="large"
+        style={styles.center}
+      />
+    );
   }
 
   if (error || !recipe) {
@@ -87,18 +76,10 @@ export default function RecipeDetails() {
 
   return (
     <ScrollView style={styles.container}>
-      {recipe.image ? (
-        <Image
-          source={{ uri: recipe.image }}
-          style={styles.image}
-        />
-      ) : (
-        <View style={styles.noImage}>
-          <Text style={styles.noImageText}>
-            Изображение отсутствует
-          </Text>
-        </View>
-      )}
+      <Image
+        source={{ uri: recipe.image }}
+        style={styles.image}
+      />
 
       <View style={styles.content}>
         <Text style={styles.title}>{recipe.name}</Text>
@@ -107,12 +88,6 @@ export default function RecipeDetails() {
         <Text>Сложность: {recipe.difficulty}</Text>
         <Text>Рейтинг: {recipe.rating}</Text>
         <Text>ID рецепта: {id}</Text>
-
-        {localRecipe && (
-          <Text style={styles.localLabel}>
-            Рецепт добавлен пользователем
-          </Text>
-        )}
       </View>
     </ScrollView>
   );
@@ -135,18 +110,6 @@ const styles = StyleSheet.create({
     height: 260,
   },
 
-  noImage: {
-    height: 200,
-    backgroundColor: '#eeeeee',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-
-  noImageText: {
-    color: '#777777',
-    fontSize: 16,
-  },
-
   content: {
     padding: 20,
     gap: 12,
@@ -154,12 +117,6 @@ const styles = StyleSheet.create({
 
   title: {
     fontSize: 26,
-    fontWeight: 'bold',
-  },
-
-  localLabel: {
-    marginTop: 10,
-    color: '#2563eb',
     fontWeight: 'bold',
   },
 });
